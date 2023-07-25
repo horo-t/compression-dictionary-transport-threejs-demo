@@ -76,9 +76,6 @@ THREE_JS_VERSIONS.forEach((ver) => {
 });
 
 
-
-loadThreeJsScript(152);
-
 fastify.listen(
   { port: process.env.PORT, host: '0.0.0.0' },
   function (err, address) {
