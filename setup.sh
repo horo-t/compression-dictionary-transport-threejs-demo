@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-readonly BROTLI_REV="779a49bfd67793f64b43015a85bc5965fba2063f"
+readonly BROTLI_REV="4fc753e707c141328ee707bc2df23603391d0102"
 
 rm -rf third_party
 
