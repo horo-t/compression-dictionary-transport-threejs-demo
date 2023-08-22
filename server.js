@@ -19,8 +19,9 @@ async function loadThreeJsScript(ver) {
 }
 
 async function loadThreeJsDelta(from, to) {
-  const delta = await fs.readFile(`third_party/three_js/${from}-${to}.js.sbr`);
-  return {from: from, to: to, delta: delta};
+  const sbr = await fs.readFile(`third_party/three_js/${from}-${to}.js.sbr`);
+  const szst = await fs.readFile(`third_party/three_js/${from}-${to}.js.szst`);
+  return {from: from, to: to, sbr: sbr, szst: szst};
 }
 
 
@@ -63,11 +64,20 @@ THREE_JS_VERSIONS.forEach((ver) => {
     reply.header('vary', 'sec-available-dictionary');
     const threeJsInfo = await threeJsInfoPromise;
     const dictHash = request.headers['sec-available-dictionary'];
+    const acceptEncodings = request.headers['accept-encoding'].split(',');
+    const sbrSupported = acceptEncodings.some(x => x.trim()=='sbr');
+    const szstSupported = acceptEncodings.some(x => x.trim()=='zstd-d');
     if (dictHash && 
+        (sbrSupported || szstSupported) &&
         threeJsInfo.deltaMap[dictHash] &&
         threeJsInfo.deltaMap[dictHash][ver]) {
-      reply.header('content-encoding', 'sbr');
-      reply.send(Buffer.from(threeJsInfo.deltaMap[dictHash][ver].delta));
+      if (szstSupported) {
+        reply.header('content-encoding', 'zstd-d');
+        reply.send(Buffer.from(threeJsInfo.deltaMap[dictHash][ver].szst));
+      } else {
+        reply.header('content-encoding', 'sbr');
+        reply.send(Buffer.from(threeJsInfo.deltaMap[dictHash][ver].sbr));
+      }
     } else if (threeJsInfo.scriptMap[ver]) {
       reply.header('content-encoding', 'br');
       reply.send(Buffer.from(threeJsInfo.scriptMap[ver].compressed));
