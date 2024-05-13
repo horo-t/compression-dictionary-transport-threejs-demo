@@ -59,7 +59,7 @@
           compression.
         </li>
         <li>
-          And the response header has `Content-Encoding: zstd-d` and `Content-Dictionary: :epjv6NymTtsZ63DPEBkyCVCh7ZlGicsjTPkBUvSQ9G4=:`.
+          And the response header has <pre>Content-Encoding: zstd-d</pre> and <pre>Content-Dictionary: :epjv6NymTtsZ63DPEBkyCVCh7ZlGicsjTPkBUvSQ9G4=:</pre> headers.
           This means that the response is compressed using the dictionary.
         </li>
         <li>
@@ -69,12 +69,6 @@
         </li>
         <li>In <a href="chrome://net-internals/#sharedDictionary">chrome://net-internals/#sharedDictionary</a>, you can
           see the updated dictionary information.</li>
-        <li>
-          If you are using Chrome version &ge; <a href="https://chromiumdash.appspot.com/commit/9ff600f7bba296380dea0b03d33b5887eab088c0">118.0.5952.0</a>,
-          Chrome supports both Shared Brotli and Shared Zstd. You will see `zstd-d` in the Accept-Encoding header.
-          And the server returns the response with `Content-Encoding: zstd-d`. This means that the response is Shared Zstd compressed.
-          You can enable/disable Shared Zstd from <a href="chrome://flags/#enable-shared-zstd">chrome://flags/#enable-shared-zstd</a>.
-        </li>
       </ul>
     </li>
     <li>
