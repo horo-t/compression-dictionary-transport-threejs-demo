@@ -31,7 +31,7 @@
       Go to <a href="/demo.html?r=151">demo.html?r=151</a>
       <ul>
         <li>This page is using Three.js (revision 151).</li>
-        <li>You can see "190kB" in the network column of "151.js".</li>
+        <li>You can see "191kB" in the network column of "151.js".</li>
         <li>The file is compressed using normal Brotli (1,198,641 bytes =&gt; 190,163 bytes) </li>
         <li>
           When you click "151.js", you can see this new response header:
@@ -47,20 +47,20 @@
       Go to <a href="/demo.html?r=152">demo.html?r=152</a>
       <ul>
         <li>This page is using Three.js (revision 152).</li>
-        <li>You can see "6.1 KB" in the network column of "152.js".</li>
+        <li>You can see "5.9 KB" in the network column of "152.js".</li>
         <li>This is compressed using Shared Brotli using the content of "151.js" as a dictionary. The original size of
-          "152.js" is 1,208,641 bytes. And the compressed data size is 5,789 bytes.</li>
+          "152.js" is 1,208,641 bytes. And the compressed data size is 5,612bytes.</li>
         <li>
           When you click "152.js", you can see this new request header:
-          <pre>Sec-Available-Dictionary:7a98efe8dca64edb19eb70cf1019320950a1ed994689cb234cf90152f490f46e</pre>
-          Also you can see a new "sbr" Accept-Encoding type:
-          <pre>Accept-Encoding: gzip, deflate, br, sbr</pre>
+          <pre>Available-Dictionary: :epjv6NymTtsZ63DPEBkyCVCh7ZlGicsjTPkBUvSQ9G4=:</pre>
+          Also you can see new "br-d" and "zstd-d" Accept-Encoding types:
+          <pre>Accept-Encoding: gzip, deflate, br, zstd, br-d, zstd-d</pre>
           This request header means that the browser has a dictionary with the hash, and can use Shared Brotli
           compression.
         </li>
         <li>
-          And the response header has `Content-Encoding: sbr`. This means that the response is compressed using the
-          dictionary.
+          And the response header has `Content-Encoding: zstd-d` and `Content-Dictionary: :epjv6NymTtsZ63DPEBkyCVCh7ZlGicsjTPkBUvSQ9G4=:`.
+          This means that the response is compressed using the dictionary.
         </li>
         <li>
           Also, the response header contains the "Use-As-Dictionary" header.
@@ -81,9 +81,9 @@
       Go to <a href="/demo.html?r=153">/demo.html?r=153</a>
       <ul>
         <li>This page is using Three.js (revision 153).</li>
-        <li>You can see "4.4 KB" in the network column of "153.js".</li>
+        <li>You can see "4.3 KB" in the network column of "153.js".</li>
         <li>This is compressed using Shared Brotli using the content of "152.js" as a dictionary. The original size of
-          "153.js" is 1,223,960 bytes. And the compressed data size is 4,098 bytes.</li>
+          "153.js" is 1,223,960 bytes. And the compressed data size is 4,077 bytes.</li>
         <li>In <a href="chrome://net-internals/#sharedDictionary">chrome://net-internals/#sharedDictionary</a>, you can
           see the updated dictionary information.</li>
       </ul>
