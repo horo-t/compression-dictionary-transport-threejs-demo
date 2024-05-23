@@ -13,10 +13,11 @@ fastify.register(require('@fastify/static'), {
 
 async function loadThreeJsScript(ver) {
   const data = await fs.readFile(`third_party/three_js/${ver}.js`);
-  const hashV1 = crypto.createHash('sha256').update(data).digest('hex');
-  const hashV2 = ':' + crypto.createHash('sha256').update(data).digest('base64') + ':';
+  const hash = crypto.createHash('sha256').update(data).digest();
+  const hashV1 = hash.toString('hex');
+  const hashV2 = ':' + hash.toString('base64') + ':';
   const compressed = await fs.readFile(`third_party/three_js/${ver}.js.br`);
-  return {ver: ver, data: data, hashV1: hashV1, hashV2: hashV2, compressed: compressed};
+  return {ver: ver, data: data, hash: hash, hashV1: hashV1, hashV2: hashV2, compressed: compressed};
 }
 
 async function loadThreeJsDelta(from, to) {
@@ -27,6 +28,9 @@ async function loadThreeJsDelta(from, to) {
 
 
 const THREE_JS_VERSIONS = ['151', '152', '153'];
+const DCB_MAGIC = Buffer.from([0xff, 0x44, 0x43, 0x42]);
+const DCZ_MAGIC = Buffer.from([0x5e, 0x2a, 0x4d, 0x18, 0x20, 0x00, 0x00, 0x00]);
+
 async function loadThreeJsFiles() {
   let promises = [];
   THREE_JS_VERSIONS.forEach((ver) => {
@@ -39,6 +43,7 @@ async function loadThreeJsFiles() {
     scriptMap[script.ver] = script;
     deltaMap[script.hashV1] = {};
     deltaMap[script.hashV2] = {};
+    deltaMap[script.hashV2].hash = script.hash;
   })
 
   promises = [];
@@ -71,6 +76,8 @@ THREE_JS_VERSIONS.forEach((ver) => {
     const acceptEncodings = request.headers['accept-encoding'].split(',');
     const sbrSupported = acceptEncodings.some(x => x.trim()=='sbr');
     const szstSupported = acceptEncodings.some(x => x.trim()=='zstd-d');
+    const dcbSupported = acceptEncodings.some(x => x.trim()=='dcb');
+    const dczSupported = acceptEncodings.some(x => x.trim()=='dcz');
     if (dictHashV1 && 
         (sbrSupported || szstSupported) &&
         threeJsInfo.deltaMap[dictHashV1] &&
@@ -82,16 +89,24 @@ THREE_JS_VERSIONS.forEach((ver) => {
         reply.header('content-encoding', 'sbr');
         reply.send(Buffer.from(threeJsInfo.deltaMap[dictHashV1][ver].sbr));
       }
-    } else if (dictHashV2 && (sbrSupported || szstSupported) &&
+    } else if (dictHashV2 && (sbrSupported || szstSupported || dcbSupported || dczSupported) &&
                threeJsInfo.deltaMap[dictHashV2] &&
                threeJsInfo.deltaMap[dictHashV2][ver]) {
       reply.header('content-dictionary', dictHashV2);
-      if (szstSupported) {
+      const deltaMap = threeJsInfo.deltaMap[dictHashV2];
+      const delta = deltaMap[ver];
+      if (dczSupported) {
+        reply.header('content-encoding', 'dcz');
+        reply.send(Buffer.concat([DCZ_MAGIC, deltaMap.hash, delta.szst]));
+      } else if (dcbSupported) {
+        reply.header('content-encoding', 'dcb');
+        reply.send(Buffer.concat([DCB_MAGIC, deltaMap.hash, delta.sbr]));
+      } else if (szstSupported) {
         reply.header('content-encoding', 'zstd-d');
-        reply.send(Buffer.from(threeJsInfo.deltaMap[dictHashV2][ver].szst));
+        reply.send(Buffer.from(delta.szst));
       } else {
         reply.header('content-encoding', 'br-d');
-        reply.send(Buffer.from(threeJsInfo.deltaMap[dictHashV2][ver].sbr));
+        reply.send(Buffer.from(delta.sbr));
       }
     } else if (threeJsInfo.scriptMap[ver]) {
       reply.header('content-encoding', 'br');
